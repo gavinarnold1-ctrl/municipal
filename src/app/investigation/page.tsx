@@ -16,7 +16,7 @@ const sections = [
     href: "/investigation/lci",
     title: "LCI: 952 unresolved complaints",
     summary:
-      "Of 3,590 complaints on file, 952 remain open. The oldest dates to 2010. Code enforcement closes ~3.7% of complaints with a citation.",
+      "Of 3,590 complaints on file, 952 remain open. Oldest dateable: 2012. Code enforcement closes ~3.7% of complaints with a citation.",
   },
   {
     href: "/investigation/budget",

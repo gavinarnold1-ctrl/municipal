@@ -6,7 +6,7 @@ export default function LciPage() {
   return (
     <InvestigationPage
       eyebrow="Investigation · Code enforcement"
-      title="952 complaints unresolved. Oldest: 2010."
+      title="Complaints sit open for years."
     >
       <P>
         The Livable City Initiative receives thousands of tenant complaints each year, but
@@ -26,6 +26,12 @@ export default function LciPage() {
         tone="red"
       />
       <Finding
+        label="Oldest dateable open complaint"
+        number="2012"
+        source="Derived from complaint number year segment (e.g. C-12-…)"
+        tone="red"
+      />
+      <Finding
         label="Closed with citation"
         number="~3.7%"
         source="Derived from Veoci dashboard status field"
@@ -36,6 +42,13 @@ export default function LciPage() {
       <P>
         Filing a complaint with LCI is a slow path. Of complaints filed five years ago,
         nearly one in four is still showing an open status today.
+      </P>
+
+      <P>
+        About 47% of complaints in the dataset can be dated from their ID (Veoci adopted the
+        <span className="text-paper"> C-YY-NNNNN</span> format around 2010). The rest use a
+        legacy <span className="text-paper">C-NNNNN</span> format with no year segment —
+        meaning the true oldest open complaint may pre-date 2012.
       </P>
     </InvestigationPage>
   );

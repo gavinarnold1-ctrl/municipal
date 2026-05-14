@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { eq } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   parcels,
@@ -35,7 +35,11 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
   if (!parcel) notFound();
 
   const [complaintRows, licenseRows, blightRows, violationRows] = await Promise.all([
-    db.select().from(complaints).where(eq(complaints.parcelId, id)),
+    db
+      .select()
+      .from(complaints)
+      .where(eq(complaints.parcelId, id))
+      .orderBy(sql`${complaints.filedYear} DESC NULLS LAST`, desc(complaints.complaintNumber)),
     db.select().from(licenses).where(eq(licenses.parcelId, id)),
     db.select().from(antiBlight).where(eq(antiBlight.parcelId, id)),
     db.select().from(housingCodeViolations).where(eq(housingCodeViolations.parcelId, id)),
@@ -152,9 +156,14 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
 
       <SectionHeading>Complaints ({complaintRows.length})</SectionHeading>
       <DataTable
-        headers={["Complaint #", "Type", "Status", "Inspector"]}
+        headers={["Complaint #", "Filed", "Type", "Status", "Inspector"]}
         rows={complaintRows.map((r) => [
           <span key="n" className="font-mono text-xs">{r.complaintNumber}</span>,
+          r.filedYear ? (
+            <span key="y" className="tabular-nums">{r.filedYear}</span>
+          ) : (
+            <span key="y" className="text-ash">—</span>
+          ),
           r.type ?? "—",
           <StatusBadge key="s" status={r.status} />,
           r.inspectorCode ?? "—",

@@ -40,6 +40,9 @@ export const complaints = pgTable("complaints", {
   inspectorCode: text("inspector_code"),
   sourceSearch: text("source_search"),
   parcelId: integer("parcel_id").references(() => parcels.id),
+  // Year derived from complaint number (e.g. C-23-01487 → 2023). Null for
+  // pre-2000 legacy rows whose IDs lack the year segment.
+  filedYear: integer("filed_year"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

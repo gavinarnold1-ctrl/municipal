@@ -173,6 +173,14 @@ async function buildAddressIndex(): Promise<Map<string, number>> {
   return map;
 }
 
+function parseComplaintYear(num: string): number | null {
+  // Format: C-YY-NNNNN — extract YY and assume 20YY (LCI's earliest year is 2010).
+  const m = num.match(/^C-(\d{2})-/);
+  if (!m) return null;
+  const yy = Number(m[1]);
+  return 2000 + yy;
+}
+
 async function seedComplaints(addressIndex: Map<string, number>) {
   console.log("Seeding complaints...");
   const rows = readCsv<ComplaintRow>(join(LCI_DIR, "complaints.csv"));
@@ -180,13 +188,15 @@ async function seedComplaints(addressIndex: Map<string, number>) {
     .filter((r) => r["Complaint #"])
     .map((r) => {
       const norm = normalizeAddress(r._source_search);
+      const num = r["Complaint #"]!;
       return {
-        complaintNumber: r["Complaint #"]!,
+        complaintNumber: num,
         status: r.Status || null,
         type: r.Type || null,
         inspectorCode: r["Inspector Code"] || null,
         sourceSearch: r._source_search || null,
         parcelId: addressIndex.get(norm) ?? null,
+        filedYear: parseComplaintYear(num),
       };
     });
 
