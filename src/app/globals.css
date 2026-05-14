@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  /* Municipal brand — dark mode first */
+  --color-ink: #0c0f12;       /* page background */
+  --color-slate: #1a1f26;     /* cards */
+  --color-steel: #2a3240;     /* borders, dividers */
+  --color-paper: #e8ecf0;     /* primary text */
+  --color-fog: #9eaab8;       /* body text */
+  --color-ash: #6b7a8d;       /* secondary text */
+  --color-copper: #c87941;    /* accent, links */
+
+  --color-risk-red: #d64545;
+  --color-risk-orange: #e08a3e;
+  --color-risk-yellow: #d4a843;
+  --color-risk-green: #4a9a5b;
+
+  --color-background: var(--color-ink);
+  --color-foreground: var(--color-paper);
+
+  --font-serif: var(--font-source-serif), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  --radius-card: 8px;
+  --radius-button: 6px;
+  --radius-badge: 4px;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+  --container-content: 960px;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-copper);
+  color: var(--color-ink);
+}
+
+a {
+  color: var(--color-copper);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
