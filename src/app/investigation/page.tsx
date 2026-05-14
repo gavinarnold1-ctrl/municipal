@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card } from "@/components/ui";
+import { Card, Eyebrow } from "@/components/ui";
 
 export const metadata = {
   title: "Investigation — Municipal",
@@ -22,7 +22,7 @@ const sections = [
     href: "/investigation/budget",
     title: "Budget signals (FY24–FY25)",
     summary:
-      "Nine numbers from the city's own budget documents — including OPEB, P&F pension, and police overtime growth.",
+      "Ten numbers from the city's own budget documents — including OPEB, P&F pension, and police overtime growth.",
   },
   {
     href: "/investigation/foia",
@@ -41,8 +41,14 @@ const sections = [
 export default function InvestigationIndex() {
   return (
     <div className="mx-auto w-full max-w-[var(--container-content)] px-6 py-12">
-      <h1 className="font-serif text-4xl font-bold text-paper tracking-tight">Investigation</h1>
-      <p className="mt-3 text-fog max-w-2xl">
+      <Eyebrow tone="copper">The investigation</Eyebrow>
+      <h1
+        className="font-serif font-bold text-paper tracking-tight leading-[1.1] mt-3"
+        style={{ fontSize: "var(--t-h1)", letterSpacing: "-0.015em" }}
+      >
+        Investigation
+      </h1>
+      <p className="mt-3 text-fog max-w-2xl" style={{ fontSize: 15, lineHeight: 1.7 }}>
         Findings drawn from New Haven&rsquo;s own budget documents, monthly financial reports,
         and Livable City Initiative dashboards. Every number cites its source.
       </p>
@@ -50,9 +56,14 @@ export default function InvestigationIndex() {
       <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4">
         {sections.map((s) => (
           <Link key={s.href} href={s.href} className="no-underline">
-            <Card className="h-full hover:border-copper transition-colors">
-              <div className="font-serif text-xl font-bold text-paper">{s.title}</div>
-              <div className="mt-2 text-sm text-fog">{s.summary}</div>
+            <Card hover className="h-full">
+              <div
+                className="font-serif font-bold text-paper"
+                style={{ fontSize: 20, letterSpacing: "-0.01em" }}
+              >
+                {s.title}
+              </div>
+              <div className="mt-2 text-sm text-fog leading-relaxed">{s.summary}</div>
             </Card>
           </Link>
         ))}

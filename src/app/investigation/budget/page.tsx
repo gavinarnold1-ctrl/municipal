@@ -15,6 +15,7 @@ export default function BudgetPage() {
 
       <H2>Healthcare</H2>
       <Finding
+        section="§01"
         label="Per-employee health benefits cost"
         number="~$33,000"
         source="FY25 budget book — Employee Benefits"
@@ -23,11 +24,13 @@ export default function BudgetPage() {
 
       <H2>Police overtime</H2>
       <Finding
+        section="§02"
         label="FY20 police overtime"
         number="$4.0M"
         source="ACFR FY20 — Public Safety expenditures"
       />
       <Finding
+        section="§03"
         label="FY25 police overtime"
         number="$14.0M"
         source="Monthly financial report, March 2026"
@@ -36,6 +39,7 @@ export default function BudgetPage() {
 
       <H2>Parking Authority</H2>
       <Finding
+        section="§04"
         label="Round-trip transaction"
         number="$3.0M"
         source="FY25 budget book — Parking Authority transfers"
@@ -44,11 +48,13 @@ export default function BudgetPage() {
 
       <H2>Building permits</H2>
       <Finding
+        section="§05"
         label="FY24 revenue"
         number="$14.5M"
         source="Monthly financial report, June 2024"
       />
       <Finding
+        section="§06"
         label="FY25 revenue"
         number="$5.8M"
         source="Monthly financial report, June 2025"
@@ -57,24 +63,28 @@ export default function BudgetPage() {
 
       <H2>Long-term liabilities</H2>
       <Finding
+        section="§07"
         label="OPEB unfunded liability"
         number="$693M"
         source="FY24 ACFR — OPEB note"
         tone="red"
       />
       <Finding
+        section="§08"
         label="OPEB liability as % of general fund"
         number="94.5%"
         source="Derived from FY24 ACFR"
         tone="red"
       />
       <Finding
+        section="§09"
         label="P&F pension funded ratio"
         number="35.6%"
         source="P&F Pension Board actuarial report 2025"
         tone="red"
       />
       <Finding
+        section="§10"
         label="P&F unfunded pension liability"
         number="$682M"
         source="P&F Pension Board actuarial report 2025"

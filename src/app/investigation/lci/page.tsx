@@ -15,23 +15,27 @@ export default function LciPage() {
       </P>
 
       <Finding
+        section="§01"
         label="Total complaints on file"
         number="3,590"
         source="LCI Veoci dashboard, snapshot 2026-04-24"
       />
       <Finding
+        section="§02"
         label="Open / unresolved"
         number="952"
         source="LCI Veoci dashboard, snapshot 2026-04-24"
         tone="red"
       />
       <Finding
+        section="§03"
         label="Oldest dateable open complaint"
         number="2012"
         source="Derived from complaint number year segment (e.g. C-12-…)"
         tone="red"
       />
       <Finding
+        section="§04"
         label="Closed with citation"
         number="~3.7%"
         source="Derived from Veoci dashboard status field"
@@ -45,10 +49,10 @@ export default function LciPage() {
       </P>
 
       <P>
-        About 47% of complaints in the dataset can be dated from their ID (Veoci adopted the
-        <span className="text-paper"> C-YY-NNNNN</span> format around 2010). The rest use a
-        legacy <span className="text-paper">C-NNNNN</span> format with no year segment —
-        meaning the true oldest open complaint may pre-date 2012.
+        About 47% of complaints in the dataset can be dated from their ID (Veoci adopted
+        the <span className="text-paper font-mono">C-YY-NNNNN</span> format around 2010).
+        The rest use a legacy <span className="text-paper font-mono">C-NNNNN</span> format
+        with no year segment — meaning the true oldest open complaint may pre-date 2012.
       </P>
     </InvestigationPage>
   );

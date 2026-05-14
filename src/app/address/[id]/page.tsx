@@ -11,12 +11,9 @@ import {
   owners,
   llcNetworks,
 } from "@/db/schema";
-import {
-  computeRiskScore,
-  detectLlcNetwork,
-  riskBucket,
-} from "@/lib/normalize";
-import { Card, SectionHeading, Badge, DataTable, StatusBadge } from "@/components/ui";
+import { computeRiskScore, detectLlcNetwork } from "@/lib/normalize";
+import { Badge, BackLink, DataTable, Mono, SectionHeading, StatusBadge } from "@/components/ui";
+import { RiskScoreCard } from "@/components/RiskScoreCard";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +46,9 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
   const expiredLicensesN = licenseRows.filter((r) => r.isExpired).length;
   const unresolvedBlightN = blightRows.filter((r) => isOpen(r.status)).length;
   const pendingViolationsN = violationRows.filter((r) => isOpen(r.status)).length;
+  const oldestOpenYear = complaintRows
+    .filter((r) => isOpen(r.status) && r.filedYear !== null)
+    .reduce<number | null>((min, r) => (min == null || (r.filedYear ?? 9999) < min ? r.filedYear : min), null);
 
   const score = computeRiskScore({
     openComplaints: openComplaintsN,
@@ -57,7 +57,6 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
     pendingViolations: pendingViolationsN,
     totalComplaints: complaintRows.length,
   });
-  const bucket = riskBucket(score);
 
   const network = detectLlcNetwork(parcel.ownerName);
   let networkInfo: { entityCount: number | null; propertyCount: number | null } | null = null;
@@ -82,41 +81,52 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-content)] px-6 py-10">
-      <div className="text-sm text-fog mb-3">
-        <Link href="/" className="text-fog no-underline hover:text-paper hover:no-underline">
-          ← Back to search
-        </Link>
-      </div>
+      <BackLink href="/">← Back to search</BackLink>
 
-      <h1 className="font-serif text-4xl font-bold text-paper tracking-tight">
+      <h1
+        className="font-serif font-bold text-paper leading-[1.1]"
+        style={{ fontSize: "var(--t-h1)", letterSpacing: "-0.015em" }}
+      >
         {parcel.legalAddress}
       </h1>
-      <div className="mt-2 flex flex-wrap gap-2 text-sm text-fog">
+      <div className="mt-3 flex flex-wrap gap-1.5 text-sm">
         {parcel.propertyClass && <Badge>{parcel.propertyClass}</Badge>}
         {parcel.parcelZone && <Badge>Zone {parcel.parcelZone}</Badge>}
         {parcel.taxesOwed && <Badge tone="red">Taxes owed</Badge>}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
-        <Card>
-          <div className="text-xs text-ash uppercase tracking-wider mb-2">Owner of record</div>
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-5">
+        <div className="bg-slate border border-steel rounded-[var(--radius-card)] p-5 shadow-[var(--shadow-card)]">
+          <div
+            className="font-sans text-[11px] font-semibold uppercase text-ash"
+            style={{ letterSpacing: "0.14em" }}
+          >
+            Owner of record
+          </div>
           {parcel.ownerName ? (
             ownerRow ? (
               <Link
                 href={`/landlord/${ownerRow.id}`}
-                className="font-serif text-2xl font-bold text-paper no-underline hover:text-copper hover:no-underline"
+                className="font-serif font-bold text-paper no-underline hover:text-copper hover:no-underline block mt-2"
+                style={{ fontSize: 24, letterSpacing: "-0.01em" }}
               >
                 {parcel.ownerName}
               </Link>
             ) : (
-              <div className="font-serif text-2xl font-bold text-paper">{parcel.ownerName}</div>
+              <div
+                className="font-serif font-bold text-paper mt-2"
+                style={{ fontSize: 24, letterSpacing: "-0.01em" }}
+              >
+                {parcel.ownerName}
+              </div>
             )
           ) : (
-            <div className="text-ash italic">Unknown</div>
+            <div className="text-ash italic mt-2">Unknown</div>
           )}
           {ownerRow?.propertyCount != null && ownerRow.propertyCount > 1 && (
-            <div className="mt-1 text-sm text-fog">
-              Owns {ownerRow.propertyCount} properties in New Haven.
+            <div className="mt-2 text-sm text-fog">
+              Owns <span className="tabular-nums text-paper">{ownerRow.propertyCount}</span> properties
+              in New Haven.
             </div>
           )}
           {network && (
@@ -127,46 +137,31 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
               </Badge>
             </div>
           )}
-        </Card>
+        </div>
 
-        <Card>
-          <div className="text-xs text-ash uppercase tracking-wider mb-2">Risk score</div>
-          <div
-            className={`font-serif text-5xl font-bold tabular-nums leading-none ${
-              bucket.tone === "red"
-                ? "text-risk-red"
-                : bucket.tone === "orange"
-                  ? "text-risk-orange"
-                  : bucket.tone === "yellow"
-                    ? "text-risk-yellow"
-                    : "text-risk-green"
-            }`}
-          >
-            {score}
-          </div>
-          <div className="mt-2">
-            <Badge tone={bucket.tone}>{bucket.label}</Badge>
-          </div>
-          <div className="mt-3 text-xs text-ash leading-relaxed">
-            Composite of open complaints (×3), expired licenses, unresolved blight,
-            pending violations, plus total complaint history.
-          </div>
-        </Card>
+        <RiskScoreCard
+          score={score}
+          note={
+            oldestOpenYear
+              ? `Oldest open complaint at this address: ${oldestOpenYear}.`
+              : "Composite of open complaints (×3), expired licenses, unresolved blight, pending violations, plus total complaint history."
+          }
+        />
       </div>
 
       <SectionHeading>Complaints ({complaintRows.length})</SectionHeading>
       <DataTable
         headers={["Complaint #", "Filed", "Type", "Status", "Inspector"]}
         rows={complaintRows.map((r) => [
-          <span key="n" className="font-mono text-xs">{r.complaintNumber}</span>,
+          <Mono key="n">{r.complaintNumber}</Mono>,
           r.filedYear ? (
-            <span key="y" className="tabular-nums">{r.filedYear}</span>
+            <Mono key="y">{r.filedYear}</Mono>
           ) : (
             <span key="y" className="text-ash">—</span>
           ),
           r.type ?? "—",
           <StatusBadge key="s" status={r.status} />,
-          r.inspectorCode ?? "—",
+          <Mono key="i" className="text-fog">{r.inspectorCode ?? "—"}</Mono>,
         ])}
         empty="No complaints on file."
       />
@@ -175,12 +170,12 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
       <DataTable
         headers={["License #", "Type", "Expiration", "Status"]}
         rows={licenseRows.map((r) => [
-          <span key="n" className="font-mono text-xs">{r.licenseNumber}</span>,
+          <Mono key="n">{r.licenseNumber}</Mono>,
           r.licenseType ?? "—",
           r.isExpired ? (
-            <span className="text-risk-orange">{r.expirationDate}</span>
+            <Mono key="e" className="text-risk-orange">{r.expirationDate}</Mono>
           ) : (
-            r.expirationDate ?? "—"
+            <Mono key="e">{r.expirationDate ?? "—"}</Mono>
           ),
           <StatusBadge key="s" status={r.status} />,
         ])}
@@ -191,7 +186,7 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
       <DataTable
         headers={["Case #", "Status"]}
         rows={blightRows.map((r) => [
-          <span key="n" className="font-mono text-xs">{r.caseNumber}</span>,
+          <Mono key="n">{r.caseNumber}</Mono>,
           <StatusBadge key="s" status={r.status} />,
         ])}
         empty="No anti-blight cases on file."
@@ -201,7 +196,7 @@ export default async function AddressPage(props: PageProps<"/address/[id]">) {
       <DataTable
         headers={["Case #", "Status"]}
         rows={violationRows.map((r) => [
-          <span key="n" className="font-mono text-xs">{r.caseNumber}</span>,
+          <Mono key="n">{r.caseNumber}</Mono>,
           <StatusBadge key="s" status={r.status} />,
         ])}
         empty="No code violations on file."

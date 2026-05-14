@@ -55,15 +55,19 @@ municipal/
 ## Brand
 Full guidelines: https://www.notion.so/360dd96dd6e28153a033c12422913931
 
-**Colors (dark mode first):**
-- Background: Ink `#0C0F12` | Cards: Slate `#1A1F26` | Borders: Steel `#2A3240`
-- Text: Paper `#E8ECF0` (primary), Fog `#9EAAB8` (body), Ash `#6B7A8D` (secondary)
-- Accent: Copper `#C87941` (links, active states)
+**Colors (dark mode first, Municipal Design System v1):**
+- Background: Ink `#0A0D11` | Surface: Ink-1 `#10141A` | Cards: Slate `#161B22` | Hover row: Slate-2 `#1B212A`
+- Borders: Steel `#232A35` (hairline) / Steel-2 `#2C3340` (heavier section breaks)
+- Text: Paper `#E9EDF2` (primary), Fog `#A3B0BD` (body), Ash `#6B7886` (meta), White `#F6F8FB` (emphasis)
+- Accent: Copper `#C87941` (links/active), Copper Light `#E09960` (hover), Copper Deep `#8B5B34` (pressed)
 - Risk: Red `#D64545`, Orange `#E08A3E`, Yellow `#D4A843`, Green `#4A9A5B`
+- Each color has a `wash` variant (12–14% opacity) for badge backgrounds.
+- Light mode tokens included (`[data-theme="light"]`) but no toggle wired up yet.
 
 **Typography:**
 - Headlines: Source Serif 4 (700/600) — editorial authority
 - Data/UI/body: Inter (400/500/600) — neutral precision
+- Record IDs / dates / dollar amounts: IBM Plex Mono (400/500/600) — public-ledger feel
 - No Fraunces, no DM Sans (those are Oversikt)
 
 **Shape:** Card radius 8px, button 6px, badge 4px. One shadow: `0 1px 3px rgba(0,0,0,0.3)`. Max-width 960px.

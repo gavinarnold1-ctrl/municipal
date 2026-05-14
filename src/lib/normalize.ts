@@ -59,10 +59,12 @@ export function computeRiskScore(stats: {
   );
 }
 
-// Risk score → label + color token
+// Risk score → label + color token. Thresholds match the Municipal Design
+// System v1 scale (a portfolio of 24 LLCs with 150+ properties can score
+// above 200 in this dataset, so the cutoffs lean higher than a single home).
 export function riskBucket(score: number): { label: string; tone: "green" | "yellow" | "orange" | "red" } {
-  if (score >= 30) return { label: "High risk", tone: "red" };
-  if (score >= 15) return { label: "Elevated risk", tone: "orange" };
-  if (score >= 5) return { label: "Some flags", tone: "yellow" };
+  if (score >= 75) return { label: "High risk", tone: "red" };
+  if (score >= 30) return { label: "Elevated risk", tone: "orange" };
+  if (score >= 15) return { label: "Some flags", tone: "yellow" };
   return { label: "Clean record", tone: "green" };
 }

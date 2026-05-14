@@ -16,12 +16,14 @@ export default function HealthcarePage() {
       </P>
 
       <Finding
+        section="§01"
         label="Per-employee health benefit cost"
         number="~$33,000"
         source="FY25 budget book — Employee Benefits line"
         tone="red"
       />
       <Finding
+        section="§02"
         label="Peer-city average (CT)"
         number="~$16,500"
         source="MPCC / CCM benchmarking"

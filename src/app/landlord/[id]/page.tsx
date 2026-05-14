@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { owners, parcels, llcNetworks } from "@/db/schema";
-import { riskBucket } from "@/lib/normalize";
-import { Card, SectionHeading, Badge, DataTable } from "@/components/ui";
+import { Badge, BackLink, DataTable, Mono, SectionHeading } from "@/components/ui";
+import { RiskScoreCard } from "@/components/RiskScoreCard";
 
 export const dynamic = "force-dynamic";
+
+function fmt(n: number | null | undefined): string {
+  return new Intl.NumberFormat("en-US").format(n ?? 0);
+}
 
 export default async function LandlordPage(props: PageProps<"/landlord/[id]">) {
   const { id: idStr } = await props.params;
@@ -30,9 +34,31 @@ export default async function LandlordPage(props: PageProps<"/landlord/[id]">) {
         .orderBy(parcels.legalAddress)
     : [];
 
-  let networkInfo: { entityCount: number | null; propertyCount: number | null; description: string | null } | null =
-    null;
-  let networkPeers: Array<{ id: number; name: string | null; propertyCount: number | null; riskScore: number | null }> = [];
+  // ── LLC network rollup (computed on-the-fly across all member entities) ──
+  type NetworkInfo = {
+    entityCount: number | null;
+    propertyCount: number | null;
+    description: string | null;
+  };
+  type NetworkTotals = {
+    properties: number;
+    openComplaints: number;
+    expiredLicenses: number;
+    unresolvedBlight: number;
+    pendingViolations: number;
+    totalComplaints: number;
+    riskScore: number;
+  };
+  type NetworkPeer = {
+    id: number;
+    name: string | null;
+    propertyCount: number | null;
+    riskScore: number | null;
+  };
+
+  let networkInfo: NetworkInfo | null = null;
+  let networkPeers: NetworkPeer[] = [];
+  let networkTotals: NetworkTotals | null = null;
   if (owner.llcNetwork) {
     const [n] = await db
       .select({
@@ -55,74 +81,98 @@ export default async function LandlordPage(props: PageProps<"/landlord/[id]">) {
       .from(owners)
       .where(eq(owners.llcNetwork, owner.llcNetwork))
       .orderBy(desc(owners.propertyCount));
+
+    const [rollup] = await db
+      .select({
+        properties: sql<number>`COALESCE(SUM(${owners.propertyCount}), 0)::int`,
+        openComplaints: sql<number>`COALESCE(SUM(${owners.openComplaints}), 0)::int`,
+        expiredLicenses: sql<number>`COALESCE(SUM(${owners.expiredLicenses}), 0)::int`,
+        unresolvedBlight: sql<number>`COALESCE(SUM(${owners.unresolvedBlight}), 0)::int`,
+        pendingViolations: sql<number>`COALESCE(SUM(${owners.pendingViolations}), 0)::int`,
+        totalComplaints: sql<number>`COALESCE(SUM(${owners.totalComplaints}), 0)::int`,
+        riskScore: sql<number>`COALESCE(SUM(${owners.riskScore}), 0)::int`,
+      })
+      .from(owners)
+      .where(eq(owners.llcNetwork, owner.llcNetwork));
+    networkTotals = rollup ?? null;
   }
 
   const score = owner.riskScore ?? 0;
-  const bucket = riskBucket(score);
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-content)] px-6 py-10">
-      <div className="text-sm text-fog mb-3">
-        <Link href="/" className="text-fog no-underline hover:text-paper hover:no-underline">
-          ← Back to search
-        </Link>
-      </div>
+      <BackLink href="/">← Back to search</BackLink>
 
-      <h1 className="font-serif text-4xl font-bold text-paper tracking-tight">{owner.name}</h1>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <h1
+        className="font-serif font-bold text-paper leading-[1.1]"
+        style={{ fontSize: "var(--t-h1)", letterSpacing: "-0.015em" }}
+      >
+        {owner.name}
+      </h1>
+      <div className="mt-3 flex flex-wrap gap-1.5">
         <Badge>{owner.propertyCount ?? 0} properties</Badge>
         {owner.llcNetwork && <Badge tone="copper">{owner.llcNetwork} network</Badge>}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
-        <Card>
-          <div className="text-sm text-fog leading-relaxed">
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-5">
+        <div className="bg-slate border border-steel rounded-[var(--radius-card)] p-5 shadow-[var(--shadow-card)]">
+          <div className="text-fog" style={{ fontSize: 15, lineHeight: 1.7 }}>
             <span className="text-paper font-medium">{owner.name}</span> owns{" "}
-            <span className="text-paper font-medium">{owner.propertyCount ?? 0}</span> properties
+            <span className="text-paper font-medium tabular-nums">{fmt(owner.propertyCount)}</span> properties
             in New Haven with{" "}
-            <span className="text-risk-red font-medium">{owner.openComplaints ?? 0}</span> open
+            <span className="text-risk-red font-medium tabular-nums">{fmt(owner.openComplaints)}</span> open
             complaints,{" "}
-            <span className="text-risk-orange font-medium">{owner.expiredLicenses ?? 0}</span>{" "}
+            <span className="text-risk-orange font-medium tabular-nums">{fmt(owner.expiredLicenses)}</span>{" "}
             expired licenses,{" "}
-            <span className="text-risk-red font-medium">{owner.unresolvedBlight ?? 0}</span>{" "}
+            <span className="text-risk-red font-medium tabular-nums">{fmt(owner.unresolvedBlight)}</span>{" "}
             unresolved blight cases, and{" "}
-            <span className="text-risk-orange font-medium">{owner.pendingViolations ?? 0}</span>{" "}
-            pending code violations.
-            Total of {owner.totalComplaints ?? 0} complaints across the portfolio.
+            <span className="text-risk-orange font-medium tabular-nums">{fmt(owner.pendingViolations)}</span>{" "}
+            pending code violations. Total of{" "}
+            <span className="text-paper font-medium tabular-nums">{fmt(owner.totalComplaints)}</span>{" "}
+            complaints across the portfolio.
           </div>
-        </Card>
+        </div>
 
-        <Card>
-          <div className="text-xs text-ash uppercase tracking-wider mb-2">Portfolio risk</div>
-          <div
-            className={`font-serif text-5xl font-bold tabular-nums leading-none ${
-              bucket.tone === "red"
-                ? "text-risk-red"
-                : bucket.tone === "orange"
-                  ? "text-risk-orange"
-                  : bucket.tone === "yellow"
-                    ? "text-risk-yellow"
-                    : "text-risk-green"
-            }`}
-          >
-            {score}
-          </div>
-          <div className="mt-2">
-            <Badge tone={bucket.tone}>{bucket.label}</Badge>
-          </div>
-        </Card>
+        <RiskScoreCard score={score} label="Portfolio risk" />
       </div>
 
-      {networkInfo && (
+      {networkInfo && networkTotals && (
         <>
-          <SectionHeading>{owner.llcNetwork} network</SectionHeading>
-          <Card>
-            <div className="text-sm text-fog leading-relaxed">{networkInfo.description}</div>
-            <div className="mt-3 text-xs text-ash">
-              {networkInfo.entityCount ?? "—"} affiliated entities ·{" "}
-              {networkInfo.propertyCount ?? "—"} properties total
+          <SectionHeading>{owner.llcNetwork} network · rolled up</SectionHeading>
+          <div className="bg-slate border border-steel rounded-[var(--radius-card)] p-5 shadow-[var(--shadow-card)]">
+            <div className="text-fog" style={{ fontSize: 15, lineHeight: 1.7 }}>
+              {networkInfo.description}
             </div>
-          </Card>
+            <div className="text-xs text-ash mt-3 tabular-nums">
+              {fmt(networkInfo.entityCount)} affiliated entities ·{" "}
+              {fmt(networkInfo.propertyCount ?? networkTotals.properties)} properties total
+            </div>
+
+            <div className="mt-5 pt-5 border-t border-steel grid grid-cols-2 md:grid-cols-4 gap-4">
+              <RollupCell
+                label="Open complaints"
+                value={fmt(networkTotals.openComplaints)}
+                tone={networkTotals.openComplaints > 0 ? "red" : undefined}
+              />
+              <RollupCell
+                label="Expired licenses"
+                value={fmt(networkTotals.expiredLicenses)}
+                tone={networkTotals.expiredLicenses > 0 ? "orange" : undefined}
+              />
+              <RollupCell
+                label="Unresolved blight"
+                value={fmt(networkTotals.unresolvedBlight)}
+                tone={networkTotals.unresolvedBlight > 0 ? "red" : undefined}
+              />
+              <RollupCell
+                label="Pending violations"
+                value={fmt(networkTotals.pendingViolations)}
+                tone={networkTotals.pendingViolations > 0 ? "orange" : undefined}
+              />
+              <RollupCell label="Total complaints" value={fmt(networkTotals.totalComplaints)} />
+              <RollupCell label="Combined risk score" value={fmt(networkTotals.riskScore)} />
+            </div>
+          </div>
 
           {networkPeers.length > 1 && (
             <>
@@ -139,8 +189,19 @@ export default async function LandlordPage(props: PageProps<"/landlord/[id]">) {
                       {p.name}
                     </Link>
                   ),
-                  <span key="c" className="tabular-nums">{p.propertyCount ?? 0}</span>,
-                  <span key="r" className="tabular-nums">{p.riskScore ?? 0}</span>,
+                  <span key="c" className="tabular-nums">{fmt(p.propertyCount)}</span>,
+                  <span
+                    key="r"
+                    className={`tabular-nums ${
+                      (p.riskScore ?? 0) >= 75
+                        ? "text-risk-red"
+                        : (p.riskScore ?? 0) >= 30
+                          ? "text-risk-orange"
+                          : "text-paper"
+                    }`}
+                  >
+                    {fmt(p.riskScore)}
+                  </span>,
                 ])}
               />
             </>
@@ -157,10 +218,39 @@ export default async function LandlordPage(props: PageProps<"/landlord/[id]">) {
             {p.unitNo ? <span className="text-ash"> · Unit {p.unitNo}</span> : null}
           </Link>,
           p.propertyClass ?? "—",
-          p.parcelZone ?? "—",
+          <Mono key="z" className="text-fog">{p.parcelZone ?? "—"}</Mono>,
         ])}
         empty="No properties found."
       />
+    </div>
+  );
+}
+
+function RollupCell({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "red" | "orange";
+}) {
+  const toneClass =
+    tone === "red" ? "text-risk-red" : tone === "orange" ? "text-risk-orange" : "text-paper";
+  return (
+    <div>
+      <div
+        className={`font-serif font-bold tabular-nums leading-none ${toneClass}`}
+        style={{ fontSize: 26, letterSpacing: "-0.02em" }}
+      >
+        {value}
+      </div>
+      <div
+        className="text-[11px] uppercase text-ash mt-2 font-semibold"
+        style={{ letterSpacing: "0.14em" }}
+      >
+        {label}
+      </div>
     </div>
   );
 }

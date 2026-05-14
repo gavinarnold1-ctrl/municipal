@@ -2,7 +2,7 @@ import { desc } from "drizzle-orm";
 import { db } from "@/db";
 import { foiaRequests } from "@/db/schema";
 import { InvestigationPage, P } from "@/components/InvestigationLayout";
-import { DataTable, StatusBadge } from "@/components/ui";
+import { DataTable, Mono, StatusBadge } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "FOIA tracker — Municipal" };
@@ -33,7 +33,7 @@ export default async function FoiaPage() {
         <DataTable
           headers={["Request #", "Title", "Department", "Filed", "Status"]}
           rows={requests.map((r) => [
-            <span key="n" className="font-mono text-xs">{r.requestNumber}</span>,
+            <Mono key="n">{r.requestNumber}</Mono>,
             <div key="t">
               <div className="text-paper">{r.title}</div>
               {r.responseSummary && (
@@ -41,7 +41,7 @@ export default async function FoiaPage() {
               )}
             </div>,
             r.department ?? "—",
-            r.dateFiled ?? "—",
+            <Mono key="d">{r.dateFiled ?? "—"}</Mono>,
             <StatusBadge key="s" status={r.status} />,
           ])}
           empty="No FOIA requests on file."

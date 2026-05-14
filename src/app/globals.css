@@ -1,44 +1,116 @@
 @import "tailwindcss";
 
-@theme {
-  /* Municipal brand — dark mode first */
-  --color-ink: #0c0f12;       /* page background */
-  --color-slate: #1a1f26;     /* cards */
-  --color-steel: #2a3240;     /* borders, dividers */
-  --color-paper: #e8ecf0;     /* primary text */
-  --color-fog: #9eaab8;       /* body text */
-  --color-ash: #6b7a8d;       /* secondary text */
-  --color-copper: #c87941;    /* accent, links */
+/* ───────────────────────────────────────────────────────────
+   Municipal — design tokens (dark mode first)
+   Source: Municipal Design System v1
+   ─────────────────────────────────────────────────────────── */
 
+@theme {
+  /* Neutrals — dark scale */
+  --color-ink: #0a0d11;       /* page background */
+  --color-ink-1: #10141a;     /* surface beneath cards */
+  --color-slate: #161b22;     /* card surfaces */
+  --color-slate-2: #1b212a;   /* hover / row-stripe */
+  --color-steel: #232a35;     /* hairline rules */
+  --color-steel-2: #2c3340;   /* heavier rule */
+  --color-ash: #6b7886;       /* meta / labels */
+  --color-fog: #a3b0bd;       /* body text */
+  --color-paper: #e9edf2;     /* primary text */
+  --color-white: #f6f8fb;     /* emphasis numbers */
+
+  /* Accent — copper */
+  --color-copper: #c87941;
+  --color-copper-light: #e09960;
+  --color-copper-deep: #8b5b34;
+
+  /* Severity */
   --color-risk-red: #d64545;
   --color-risk-orange: #e08a3e;
   --color-risk-yellow: #d4a843;
   --color-risk-green: #4a9a5b;
 
+  /* Semantic aliases used by Tailwind utility shorthands */
   --color-background: var(--color-ink);
   --color-foreground: var(--color-paper);
 
-  --font-serif: var(--font-source-serif), Georgia, serif;
-  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  /* Type stacks (font CSS vars are emitted by next/font in layout.tsx) */
+  --font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
+  /* Shape */
   --radius-card: 8px;
   --radius-button: 6px;
   --radius-badge: 4px;
+  --radius-pill: 999px;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  /* Elevation */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.32);
+  --shadow-pop: 0 6px 20px rgba(0, 0, 0, 0.45);
 
+  /* Layout */
   --container-content: 960px;
+  --container-wide: 1280px;
+
+  /* Motion */
+  --ease-municipal: cubic-bezier(0.2, 0.6, 0.2, 1);
 }
+
+/* Non-Tailwind tokens — not in @theme so they don't generate utilities */
+:root {
+  /* Wash backgrounds for badges */
+  --copper-wash: rgba(200, 121, 65, 0.12);
+  --risk-red-wash: rgba(214, 69, 69, 0.14);
+  --risk-orange-wash: rgba(224, 138, 62, 0.14);
+  --risk-yellow-wash: rgba(212, 168, 67, 0.14);
+  --risk-green-wash: rgba(74, 154, 91, 0.14);
+
+  /* Type scale — referenced via arbitrary values where needed */
+  --t-display: clamp(2.5rem, 1.6rem + 3vw, 3.75rem);   /* 40–60px */
+  --t-h1: clamp(2rem, 1.4rem + 2vw, 2.5rem);            /* 32–40px */
+  --t-stat: clamp(2.25rem, 1.5rem + 2vw, 3rem);         /* 36–48px */
+
+  /* Motion durations */
+  --t-quick: 0.15s;
+  --t-base: 0.2s;
+  --t-slow: 0.4s;
+}
+
+/* ── Light mode (tokens only — no toggle wired up yet) ───── */
+[data-theme="light"] {
+  --color-ink: #f4f3ee;        /* newsprint */
+  --color-ink-1: #ecebe5;
+  --color-slate: #ffffff;      /* cards lift on off-white */
+  --color-slate-2: #f7f6f1;
+  --color-steel: #d8d4cb;
+  --color-steel-2: #c2bdb1;
+  --color-ash: #6b7886;
+  --color-fog: #4b5560;
+  --color-paper: #1a1f26;
+  --color-white: #0a0d11;
+  --copper-wash: rgba(200, 121, 65, 0.10);
+  --shadow-card: 0 1px 2px rgba(20, 25, 32, 0.06), 0 1px 1px rgba(20, 25, 32, 0.04);
+  color-scheme: light;
+}
+
+/* ───────────────────────────────────────────────────────
+   Base
+   ─────────────────────────────────────────────────────── */
 
 html {
   color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern", "liga", "calt";
 }
 
 body {
   background: var(--color-ink);
   color: var(--color-paper);
   font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.65;
 }
 
 ::selection {
@@ -49,8 +121,17 @@ body {
 a {
   color: var(--color-copper);
   text-decoration: none;
+  transition: color var(--t-quick) var(--ease-municipal);
 }
 
 a:hover {
+  color: var(--color-copper-light);
   text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Force lining + tabular figures whenever tabular-nums is requested.
+   Source Serif 4 defaults to old-style; this gives the "ledger" feel. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums lining-nums;
 }
