@@ -19,6 +19,12 @@ const sections = [
       "Of 3,590 complaints on file, 952 remain open. Oldest dateable: 2012. Code enforcement closes ~3.7% of complaints with a citation.",
   },
   {
+    href: "/investigation/networks",
+    title: "LLC network mapping",
+    summary:
+      "Seven networks. 459 properties. Detected by substring patterns on owner names. Per-network rollups for properties, open complaints, expired licenses, and combined risk.",
+  },
+  {
     href: "/investigation/budget",
     title: "Budget signals (FY24–FY25)",
     summary:
